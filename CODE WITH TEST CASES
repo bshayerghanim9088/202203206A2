@@ -1,0 +1,168 @@
+# Class Definitions
+class DigitalBook:
+    # Here, we’re setting up our DigitalBook class with essential details about each book
+    def __init__(self, book_id, title, author, description, price):
+        self.__book_id = book_id  # Book ID is private to keep it secure within the class
+        self.title = title
+        self.author = author
+        self.description = description
+        self.__price = price  # Price is also private for controlled access
+
+    # Method to get details about the book
+    def get_details(self):
+        # We return a string that includes all important info about the book
+        return f"{self.title} by {self.author}, Price: AED {self.__price}\nDescription: {self.description}"
+
+    # Method to update the book's price
+    def set_price(self, price):
+        # Here, we set the price to a new value, allowing controlled price updates
+        self.__price = price
+
+
+class User:
+    # This is our User class, where we set up customer accounts
+    def __init__(self, user_id, name, contact_information):
+        self.__user_id = user_id  # The user's ID is private
+        self.name = name
+        self.contact_information = contact_information
+        self.cart = Cart()  # Each user gets their own cart instance
+        self.is_loyalty_member = False  # By default, users are not loyalty members
+
+    # Method to register the user for the loyalty program
+    def register_loyalty_program(self):
+        self.is_loyalty_member = True  # Now they’re part of the loyalty program
+
+    # Method to add a book to the user's cart
+    def add_to_cart(self, book):
+        self.cart.add_item(book)
+
+    # Method to remove a book from the user's cart
+    def remove_from_cart(self, book):
+        self.cart.remove_item(book)
+
+
+class Cart:
+    # This Cart class manages the books the user wants to purchase
+    def __init__(self):
+        self.__items = []  # Cart items are private to this class
+
+    # Method to add a book to the cart
+    def add_item(self, book):
+        self.__items.append(book)
+        print(f"Added {book.title} to cart.")
+
+    # Method to remove a book from the cart
+    def remove_item(self, book):
+        if book in self.__items:
+            self.__items.remove(book)
+            print(f"Removed {book.title} from cart.")
+        else:
+            print(f"{book.title} not found in cart.")
+
+    # Method to calculate the total price of all items in the cart
+    def calculate_total(self):
+        return sum(book._DigitalBook__price for book in self.__items)  # Accessing the private price attribute
+
+
+class PurchaseOrder:
+    # The PurchaseOrder class helps us handle the user's final order
+    def __init__(self, user):
+        self.__user = user  # Keep user data private within the order
+        self.items = user.cart._Cart__items.copy()  # Copy items from the user's cart
+        self.total_amount = 0  # Initialize total amount
+        self.calculate_total()  # Calculate the initial total
+
+    # Calculate total amount, applying discounts if necessary
+    def calculate_total(self):
+        self.total_amount = sum(book._DigitalBook__price for book in self.items)
+        if len(self.items) >= 5:
+            self.total_amount *= 0.8  # Apply 20% discount for bulk purchases
+        if self.__user.is_loyalty_member:
+            self.total_amount *= 0.9  # Apply an extra 10% discount for loyalty members
+
+    # Finalize the order, clear the user's cart
+    def finalize_order(self):
+        self.__user.cart._Cart__items.clear()  # Empty the cart after placing the order
+        print("Order finalized. Items purchased:")
+        for book in self.items:
+            print(f"- {book.title}")
+        print(f"Total amount to be paid: AED {self.total_amount:.2f}")
+
+
+class Discount:
+    # This class applies any specific discount to an order
+    def __init__(self, discount_type, discount_amount):
+        self.discount_type = discount_type
+        self.discount_amount = discount_amount
+
+    # Apply the discount to a purchase order
+    def apply_discount(self, order):
+        order.total_amount -= self.discount_amount
+        print(f"Applied {self.discount_type} discount: -AED {self.discount_amount:.2f}")
+
+
+class BillingReceipt:
+    # The BillingReceipt class helps generate a receipt with VAT included
+    def __init__(self, order):
+        self.order_details = order
+        self.subtotal = order.total_amount
+        self.tax = self.subtotal * 0.08  # We add 8% VAT on subtotal
+        self.total_amount = self.subtotal + self.tax
+
+    # Method to display the receipt to the user
+    def generate_receipt(self):
+        print("\n--- Billing Receipt ---")
+        for book in self.order_details.items:
+            print(f"- {book.title}: AED {book._DigitalBook__price:.2f}")
+        print(f"Subtotal: AED {self.subtotal:.2f}")
+        print(f"Tax (8%): AED {self.tax:.2f}")
+        print(f"Total Amount: AED {self.total_amount:.2f}")
+        print("------------------------")
+
+
+# Books Catalog
+# Here’s our collection of Arabic books with some brief descriptions
+e_books_catalog = [
+    DigitalBook(1, "Arabian Tales", "Various Authors", "Stories capturing everyday Arab life.", 20.0),
+    DigitalBook(2, "The Exit Door", "Ezzedine Choukri Fishere", "A story of political changes in Egypt.", 25.0),
+    DigitalBook(3, "Farah", "Ghassan Kanafani", "A story highlighting Palestinian experiences.", 18.0),
+    DigitalBook(4, "One Thousand and One Nights", "Various Authors", "A timeless collection of folk tales.", 30.0),
+    DigitalBook(5, "The Self-Taught Philosopher", "Ibn Tufail", "A philosophical tale on knowledge.", 22.0),
+]
+
+# Test Case 1: Manage E-books Catalog
+print("\n--- Test Case 1: Manage E-books Catalog ---")
+# Adding a new book
+new_book = DigitalBook(6, "Modern Arabic Fiction", "Leila Aboulela", "A novel on contemporary Arab experiences.", 28.0)
+e_books_catalog.append(new_book)
+print(f"Added new e-book to catalog: {new_book.get_details()}")
+
+# Modifying an existing book price
+e_books_catalog[0].set_price(22.0)
+print(f"Modified price of {e_books_catalog[0].title} to AED 22.0")
+
+# Removing a book from the catalog
+removed_book = e_books_catalog.pop(1)
+print(f"Removed '{removed_book.title}' from catalog.\n")
+
+# Test Case 2: Manage Customer Account
+print("\n--- Test Case 2: Manage Customer Account ---")
+user1 = User(1, "Ahmed", "ahmed@example.com")
+print(f"Created new user: {user1.name}")
+
+# Test Case 3: Add E-books to Shopping Cart
+print("\n--- Test Case 3: Add E-books to Shopping Cart ---")
+user1.add_to_cart(e_books_catalog[0])
+user1.add_to_cart(e_books_catalog[1])
+
+# Test Case 4: Apply Discounts for Loyalty Program Members and Bulk Purchases
+print("\n--- Test Case 4: Apply Discounts ---")
+user1.register_loyalty_program()
+print(f"{user1.name} has joined the loyalty program.")
+
+# Test Case 5: Finalize Purchase and Generate Invoice
+print("\n--- Test Case 5: Finalize Purchase and Generate Invoice ---")
+order1 = PurchaseOrder(user1)
+order1.finalize_order()
+receipt1 = BillingReceipt(order1)
+receipt1.generate_receipt()
